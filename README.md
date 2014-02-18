@@ -43,6 +43,7 @@ alt="IMAGE ALT TEXT HERE" width="400" height="350" border="10" /></a>
   * If you got the desired book in the listing then right click on it and choose download
   * If you got the desired book and want to search books similar books then right click and choose Find Similar
   * If you have the local copy of the eBook, then it will appear in green color.
+![](https://dli-downloader.googlecode.com/svn/search.png)
    
 ###System Requirements & Installation Steps
   * Windows XP Windows 7 Windows 8, Mac, Ubuntu 12.10, x86 & x64
@@ -58,7 +59,7 @@ alt="IMAGE ALT TEXT HERE" width="400" height="350" border="10" /></a>
 ###Configuration Settings
 Go to System Tray and right click on the DLI icon and then select Settings, a popup window will appear as shown below -
 
-![DLI settings](http://dli-downloader.googlecode.com/svn/Settings.png "DLI Settings Tab")
+![DLI settings](https://dli-downloader.googlecode.com/svn/Settings.png "DLI Settings Tab")
 
 Now you can edit the config values in this editor after double clicking a particular value. Please restart the application after making the necessary changes, otherwise the effects will not be visible.
 
