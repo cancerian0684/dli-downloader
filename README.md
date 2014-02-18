@@ -1,4 +1,4 @@
-dli-downloader
+Free & Fast dli-downloader Tool
 ==============
 
 Fast tool to Download Free eBooks in PDF format from Digital Library of India
@@ -55,8 +55,9 @@ alt="IMAGE ALT TEXT HERE" width="400" height="350" border="10" /></a>
   * Search/Download/Open books in search Tab after the previous step is over.
   * Once you are done downloading the e-book, goto System Tray and find the DLI icon, right click on it and choose exit.
 
-==Configuration Settings==
+###Configuration Settings
 Go to System Tray and right click on the DLI icon and then select Settings, a popup window will appear as shown below -
+
 ![DLI settings](http://dli-downloader.googlecode.com/svn/Settings.png "DLI Settings Tab")
 
 Now you can edit the config values in this editor after double clicking a particular value. Please restart the application after making the necessary changes, otherwise the effects will not be visible.
