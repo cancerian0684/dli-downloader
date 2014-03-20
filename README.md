@@ -47,10 +47,10 @@ alt="IMAGE ALT TEXT HERE" width="400" height="350" border="10" /></a>
    
 ###System Requirements & Installation Steps
   * Windows XP Windows 7 Windows 8, Mac, Ubuntu 12.10, x86 & x64
-  * Download Java 7 runtime from oracle website and install it on your windows PC. http://www.oracle.com/technetwork/java/javase/downloads/jre7-downloads-1880261.html
+  * Download Java 8 runtime from oracle website and install it on your windows PC. http://www.oracle.com/technetwork/java/javase/downloads/index-jsp-138363.html
   * Download the binary jar file from the Downloads section of this project and save it on your computer.
   * Run the jar by double-clicking it in the windows environment. UNIX and Mac users please run the following command (or associate with Java Runtime for the first use)
-   java -jar dli-downloader-5.2-jar-with-dependencies
+   java -jar dli-downloader-5.6-jar-with-dependencies
   * A GUI will appear once you run the app, and System Tray will now have one icon for controlling this DLI downloader.
   * Create a Local Index for a particular language books, that may take few minutes.
   * Search/Download/Open books in search Tab after the previous step is over.
@@ -89,7 +89,7 @@ a/c 5277618224
 IFSC CITI0000002
 Citi Bank N.A. Delhi
 ```
-Don't forget to send me the details on email : cancerian0684@gmail.com
+Don't forget to send me the details on email : cancerian0684@gmail.com, arunsharma.nith@gmail.com
 
 ####About the Author
 For any feedback/suggestions please write back to me at cancerian0684@gmail.com or arunsharma.nith@gmail.com
