@@ -1,0 +1,4 @@
+Installation Guide
+====================
+1.) Download the latest dli-downloader jar file
+2.) Download Lucene Index folder and extract its contents (lucene_index) to the same folder where jar is downloaded.

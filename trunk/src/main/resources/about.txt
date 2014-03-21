@@ -1,0 +1,20 @@
+##About Us
+###Developers
+1. Arun Sharma (arunsharma.nith@gmail.com) -  Initial Idea for developing this software, requirement capturing, regression testing of the tool for his needs
+2. Munish Chandel (cancerian0684@gmail.com) - Designing & implementing the concept using Java Framework
+
+###Documentation and Video Tutorial
+1. Tanuja Dhatwalia
+
+###Special Thanks To
+1. P M Bhat - for his valuable suggestions for design improvements and his time for testing this software.
+2. Lalit - for suggestions, feedback and testing the tool in its beta phase.
+
+###Thanks for supporting us financially
+1. SK Nigam
+2. Dhanshyam Patel
+
+###License & Terms
+GNU LESSER GENERAL PUBLIC LICENSE
+<https://www.gnu.org/licenses/lgpl.html>
+

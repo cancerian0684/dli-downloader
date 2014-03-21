@@ -1,0 +1,38 @@
+##Documentation Help
+###What is DLI Downloader ?
+DLI downloader is a Desktop Tool to help you enable search & downloads eBooks in PDF/TIFF format from from Digital Library of India.
+Digital Library of India hosts thousands of copyright freed books in scanned format covering multiple regional languages.
+
+###Key Features of the Tool
+1. Seamless search and download functionality right within the Tool.
+2. Queue up your books for download
+3. Load balancing your download from multiple dli-servers for better speed.
+4. 100% Network Fault Tolerance - Downloads will not fail if the internet connection is disrupted, dli-downloader will silently wait for the connection restore.
+5. Track your existing downloads so that you do not end up downloading the same book twice.
+6. System Tray support for background running of the Tool
+7. Works well on the Windows 7/8 PC, Ubuntu 12.10 and Mac, on both x86 and x64 OS'es
+8. Bulk download barcodes by providing the text file which contains all the requested barcodes delimited by the newline, comma or semicolon.
+9. Find Books similar to a given selected book.
+10. Bulk download in few clicks
+
+###Searching/Downloading a Book
+1. If you want to search all hindi books then type hindi
+2. If you do not know exact spell of the word then append ~ at the end like handi~ will search hindi books as well
+3. If you want to search all books which are not hindi then type criteria -hindi
+4. If you got the desired book in the listing then right click on it and choose download
+5. If you got the desired book and want to search books similar books then right click and choose Find Similar
+6. If you have the local copy of the eBook, then it will appear in green color.
+7. You can select multiple books by pressing the control button on your keyboard while selecting the books by mouse and then right click and choose download.
+
+### Need Help ?
+For suggestions, feedback and help, please drop an email to cancerian0684@gmail.com and arunsharma.nith@gmail.com
+
+###Want to support us financially ?
+You can deposit the money to our bank account -
+**Bank Deposit by NEFT**
+MUNISH CHANDEL
+a/c 5277618224
+IFSC CITI0000002
+Citi Bank N.A. Delhi
+
+Don't forget to send us the details on email : cancerian0684@gmail.com, arunsharma.nith@gmail.com
