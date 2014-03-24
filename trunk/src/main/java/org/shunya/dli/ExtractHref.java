@@ -96,7 +96,7 @@ public class ExtractHref {
         con.setReadTimeout(60 * 1000);
         con.setConnectTimeout(60 * 1000);
         try (FileChannel fileChannel = FileChannel.open(path, EnumSet.of(CREATE_NEW, WRITE));
-             ReadableByteChannel rbc = Channels.newChannel(con.getInputStream());) {
+             ReadableByteChannel rbc = Channels.newChannel(con.getInputStream())) {
             totalBytesRead = fileChannel.transferFrom(rbc, 0, 1 << 28);   // download file with max size 4MB
             System.out.println(fileName + " [ " + totalBytesRead / 1024 + " KB]");
         } catch (FileNotFoundException | MalformedURLException e) {

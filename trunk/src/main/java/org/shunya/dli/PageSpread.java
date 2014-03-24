@@ -47,7 +47,6 @@ public class PageSpread {
 
     /**
      * Constructor calculates the spread of pages for the given input start page and end page.
-     *
      * @param start
      * @param end
      */
@@ -69,7 +68,6 @@ public class PageSpread {
     /**
      * Multiple threads can use this method to poll their next job.
      * This method is non-blocking and returns null if no element is left in the queue.
-     *
      * @return
      */
     public synchronized Page poll() {
@@ -81,7 +79,6 @@ public class PageSpread {
 
     /**
      * This method should be used to put back a page if the download has failed by some reason.
-     *
      * @param page
      */
     public synchronized void offer(Page page) {

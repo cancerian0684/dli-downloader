@@ -13,7 +13,7 @@ import static java.util.Arrays.asList;
 
 public class AppConfigTableModel extends AbstractTableModel {
     public static final int[] size = {120, 80, 300};
-    public final List<String> mutableFields = asList(new String[]{"String", "int", "boolean"});
+    public final List<String> mutableFields = asList("String", "int", "boolean");
     private static final long serialVersionUID = 1L;
     private final AppContext appContext;
     private final Map<String, Method> methods = new HashMap<>(100);

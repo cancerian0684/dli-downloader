@@ -73,8 +73,8 @@ public class SearchPanel extends JPanel {
         openPDFMenu = new JMenuItem("Open PDF");
         openPDFMenu.addActionListener(e -> {
             if (jTable.getSelectedRow() != -1) {
-                Publication td = tableModel.getRow(jTable.convertRowIndexToModel(jTable.getSelectedRow()));
-                final Path path = Paths.get(td.getLocalPath());
+                Publication book = tableModel.getRow(jTable.convertRowIndexToModel(jTable.getSelectedRow()));
+                final Path path = Paths.get(book.getLocalPath());
                 if (Files.exists(path)) {
                     try {
                         Desktop.getDesktop().open(path.toFile());
@@ -82,7 +82,7 @@ public class SearchPanel extends JPanel {
                         e1.printStackTrace();
                     }
                 } else {
-                    JOptionPane.showMessageDialog(window.getFrame(), "PDF file does not exists : " + td.getBarcode()+", \n"+path.toFile().getAbsolutePath(), "File Not Found in Local Directory", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(window.getFrame(), "PDF file does not exists : " + book.getBarcode() + ", \n" + path.toFile().getAbsolutePath(), "File Not Found in Local Directory", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -109,7 +109,7 @@ public class SearchPanel extends JPanel {
                 for (int row : userSelectedRows) {
                     int rowModelIndex = jTable.convertRowIndexToModel(row);
                     Publication td = tableModel.getRow(rowModelIndex);
-                    query.append(td.getAuthor() + " " + td.getTitle() + " " + td.getSubject()+" ");
+                    query.append(td.getAuthor() + " " + td.getTitle() + " " + td.getSubject() + " ");
                 }
                 jTextField.setText(removeDuplicateWords(clean(query.toString())).trim());
 //                    updateSearchResult(query);
@@ -160,7 +160,8 @@ public class SearchPanel extends JPanel {
                     public void removeUpdate(DocumentEvent e) {
                         updateSearchResult(SearchPanel.this.jTextField.getText());
                     }
-                });
+                }
+        );
     }
 
     private void updateSearchResult(String query) {
@@ -195,7 +196,41 @@ public class SearchPanel extends JPanel {
     }
 
     private void initializeTable() {
-        jTable = new JTable(tableModel);
+        jTable = new JTable(tableModel) {
+            public boolean editCellAt(int row, int column, java.util.EventObject e) {
+                column = convertColumnIndexToModel(column);
+                if (isEditing()) {
+                    getCellEditor().stopCellEditing();
+                }
+                if (e instanceof MouseEvent) {
+                    JTable table = (JTable) e.getSource();
+                    MouseEvent mEvent = ((MouseEvent) e);
+
+                    if (((MouseEvent) e).getClickCount() == 1 && this.isRowSelected(row)) {
+                        return false;
+                    }
+                    if (mEvent.getClickCount() == 2 && table.getSelectedRow() != -1) {
+                        Publication book = ((SearchTableModel) table.getModel()).getRow(table.convertRowIndexToModel(table.getSelectedRow()));
+                        if(book.getLocalPath()==null)
+                            return false;
+                        final Path path = Paths.get(book.getLocalPath());
+                        if (Desktop.isDesktopSupported() && Files.exists(path)) {
+                            try {
+                                Desktop.getDesktop().open(path.toFile());
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+                    } else if (!table.isRowSelected(row)) {
+                        return false;
+                    } else {
+                        return super.editCellAt(row, column, e);
+                    }
+                    return false;
+                }
+                return super.editCellAt(row, column, e);
+            }
+        };
         jTable.setShowGrid(false);
 //        jTable.setPreferredScrollableViewportSize(new Dimension(490, 450));
         jTable.setFillsViewportHeight(true);

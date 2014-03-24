@@ -32,37 +32,33 @@ public class DelaySkipQueue<T> {
         return element;
     }
 
-    public static void main(String[] args) {
-        final DelaySkipQueue<String> pdq = new DelaySkipQueue<String>(400);
-        Thread producer = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int i = 0;
-                while (i < 5) {
-                    pdq.put("munish" + i++);
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(10);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+    public static void main(String[] args) throws InterruptedException {
+        final DelaySkipQueue<String> pdq = new DelaySkipQueue<>(400);
+        Thread producer = new Thread(() -> {
+            int i = 0;
+            while (i < 5) {
+                pdq.put("munish" + i++);
+                try {
+                    TimeUnit.MILLISECONDS.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         });
         producer.start();
 
-        Thread consumer = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        System.out.println(pdq.take());
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        Thread consumer = new Thread(() -> {
+            while (!Thread.interrupted()) {
+                try {
+                    System.out.println(pdq.take());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         });
         consumer.start();
+        Thread.sleep(5000);
+        consumer.interrupt();
     }
 
     static class Latch {

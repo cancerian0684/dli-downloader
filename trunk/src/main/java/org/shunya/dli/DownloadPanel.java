@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -328,6 +329,10 @@ public class DownloadPanel extends JPanel implements DownloadObserver {
                 null,
                 categories.toArray(),
                 categories.get(0));
+        indexLanguage(window, appContext, language);
+    }
+
+    public void indexLanguage(Main window, AppContext appContext, String language) {
         if (language == null || language.isEmpty())
             return;
         final LogWindow logWindow = new LogWindow(appContext.getLogBufferSize(), "Logs - " + language);
@@ -337,6 +342,8 @@ public class DownloadPanel extends JPanel implements DownloadObserver {
             Future<?> future = appContext.getJobExecutorService().submit(() -> {
                 if (appContext.isShutdown() || task.isCancelled()) {
                     System.err.println("Cancelling Task -- " + task.getBarcode());
+                    task.setState(RunState.Cancelled);
+                    task.notifyObserver();
                     return;
                 }
                 try {
@@ -344,6 +351,8 @@ public class DownloadPanel extends JPanel implements DownloadObserver {
                     downloadWithRetry(task);
                     task.setState(RunState.Completed);
                     window.indexLocalDirectories();
+                    appContext.getIndexedLanguages().add(language.toLowerCase());
+                    appContext.setLastIndexUpdate(new Date());
                     logWindow.log("Index Language Task Completed successfully.");
                 } catch (CancelledExecutionException | CancellationException | InterruptedException e) {
                     task.setState(RunState.Cancelled);
@@ -493,9 +502,7 @@ public class DownloadPanel extends JPanel implements DownloadObserver {
     }
 
     private void interpretNewTaskAndSubmit(String input) {
-        if (input == null || input.trim().isEmpty())
-            return;
-        else if (input.startsWith("http://") || input.startsWith("https://")) {
+        if (input == null || input.trim().isEmpty()) {} else if (input.startsWith("http://") || input.startsWith("https://")) {
             addHttpDownloadTask(input.trim());
         } else {
             List<String> barcodes = newTaskInterpreter.getBarcodes(input.trim(), extractor);
@@ -584,7 +591,8 @@ public class DownloadPanel extends JPanel implements DownloadObserver {
             task.addMetadata(Language, publication.getLanguage());
             task.addMetadata(TotalPages, publication.getPages());
             task.addMetadata(Year, publication.getYear());
-        } catch (Exception ie) {}
+            task.addMetadata(URL, publication.getUrl());
+        } catch (Exception ignored) {}
         if (!task.getBarcode().isEmpty() && getTableModel().addDownload(task)) {
             task.withObserver(DownloadPanel.this);
             Future<?> future = appContext.getJobExecutorService().submit(new Runnable() {
@@ -603,6 +611,11 @@ public class DownloadPanel extends JPanel implements DownloadObserver {
                         task.beforeStart();
                         downloadWithRetry(task);
                         task.setState(RunState.Completed);
+                        if (appContext.isAutomaticallyIndexNewLanguages()) {
+                            if (!appContext.getIndexedLanguages().contains(task.getLanguage().toLowerCase())) {
+                                indexLanguage(window, appContext, task.getLanguage());
+                            }
+                        }
                         logWindow.log("Download Task Completed successfully.");
                         Path path = Paths.get(appContext.getRootDirectory(), task.getPdfName());
                         downloads.add(task.getBarcode(), path);
@@ -642,7 +655,7 @@ public class DownloadPanel extends JPanel implements DownloadObserver {
     private void downloadWithRetry(InteractiveTask task) throws CancelledExecutionException, InterruptedException, IOException, ExecutionException, MetadataNotFound, DocumentException {
         do {
             try {
-                appContext.getTap().offAndWaitIfDisconnected();
+                appContext.getTap().pauseIfDisconnected();
                 task.download();
             } catch (CancelledExecutionException ce) {
                 throw ce;

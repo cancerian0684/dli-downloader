@@ -16,12 +16,12 @@ public class BarCodeInterpreter {
     private ServerQueue serverQueue;
     private AppContext appContext;
 
-    public BarCodeInterpreter(ServerQueue serverQueue) {
+    public BarCodeInterpreter(ServerQueue serverQueue, AppContext appContext) {
         this.serverQueue = serverQueue;
+        this.appContext = appContext;
     }
 
     public Map<String, String> collect(String url, String barcode, AppContext appContext, LogWindow logWindow, DLIDownloader dliDownloader) throws IOException, MetadataNotFound, CancelledExecutionException {
-        this.appContext = appContext;
         logWindow.log("Fetching metadata for Barcode : " + barcode);
         Map<String, String> adminData = new HashMap<>();
         final Iterator<DLIServer> dliServerIterator = serverQueue.getMetadataServers().iterator();

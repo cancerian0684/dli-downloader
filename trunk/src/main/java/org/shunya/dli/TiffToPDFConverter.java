@@ -19,13 +19,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TiffToPDFConverter {
     final Logger logger = LoggerFactory.getLogger(TiffToPDFConverter.class);
-    final Pattern pattern = Pattern.compile("\\d+");
 
     public int convert(String rootDir, String barcode, String pdfName, AppContext appContext, Downloader downloader, String rootUrl, DLIDownloader adminData, Rectangle pageSize, LogWindow logWindow) throws IOException, DocumentException, CancelledExecutionException {
         int failures = 0;
@@ -38,17 +36,9 @@ public class TiffToPDFConverter {
         logger.info("Converting directory to PDF " + directory);
         logWindow.log("Converting directory to PDF " + directory);
         List<Path> allTiffFiles = new ArrayList<>();
-        try (DirectoryStream<Path> ds = Files.newDirectoryStream(directory, new DirectoryStream.Filter<Path>() {
-            @Override
-            public boolean accept(Path entry) throws IOException {
-                return entry.getFileName().toString().toLowerCase().endsWith(".tif") || entry.getFileName().toString().toLowerCase().endsWith(".tiff");
-            }
-        })) {
-            for (Path path : ds) {
-                allTiffFiles.add(path);
-            }
-            Comparator<Path> comp = (first, second)-> first.getFileName().compareTo(second.getFileName());
-            Collections.sort(allTiffFiles, comp);
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(directory, entry -> entry.getFileName().toString().toLowerCase().endsWith(".tif") || entry.getFileName().toString().toLowerCase().endsWith(".tiff"))) {
+            for (Path path : ds) {allTiffFiles.add(path);}
+            Collections.sort(allTiffFiles, (first, second) -> first.getFileName().compareTo(second.getFileName()));
 
             Document document = new Document(pageSize);
             OutputStream os = Files.newOutputStream(Paths.get(rootDir, pdfName));
@@ -74,18 +64,22 @@ public class TiffToPDFConverter {
                 if (Thread.currentThread().isInterrupted()) {
                     throw new CancelledExecutionException("Execution Cancelled, quiting PDF conversion");
                 }
-                int failureCount =0;
-                while (!addTiffToDocument(document, path, pageSize, logWindow) && failureCount<appContext.getMaxConsecutiveIOFailure()) {
+                int failureCount = 0;
+                AtomicBoolean status = new AtomicBoolean(false);
+                while (!addTiffToDocument(document, path, pageSize, logWindow, status) && failureCount < appContext.getMaxConsecutiveIOFailure()) {
                     try {
                         ++failureCount;
                         logger.info("pdf conversion failed, retrying download for tiff : " + path);
                         logWindow.log("pdf conversion failed, retrying download for tiff : " + path);
-                        downloader.download(rootUrl, path.getFileName().toString(), directory.toAbsolutePath().toString(), appContext, true, logWindow, 1 << 22, true); //retry once again overwriting the failed image
+                        downloader.download(rootUrl, path.getFileName().toString(), directory.toAbsolutePath().toString(), appContext, true, logWindow, 1 << 23, true); //retry once again overwriting the failed image
                     } catch (Exception e) {
                         logWindow.log("retry download failed for tiff : " + path);
                         logger.info("retry download failed for tiff : " + path);
-                        appContext.getTap().offAndWaitIfDisconnected();
+                        appContext.getTap().pauseIfDisconnected();
                     }
+                }
+                if(!status.get()){
+                    failedTiffs.add(path.toString());
                 }
                 count++;
             }
@@ -105,13 +99,17 @@ public class TiffToPDFConverter {
         document.addAuthor(adminData.getAttr(AppConstants.Author));
         document.addLanguage(adminData.getAttr(AppConstants.Language));
         document.addSubject(adminData.getAttr(AppConstants.Subject));
+        document.addCreator("DLI-Downloader Tool");
+        document.addHeader("Barcode", adminData.getAttr(AppConstants.BARCODE));
         document.addCreationDate();
         document.setPageSize(pageSize);
         document.setMargins(1, 1, 1, 1);
         PdfContentByte cb = pdfWriter.getDirectContent();
-        document.add(new Paragraph("Barcode : " + barcode + "\nTitle - " + adminData.getAttr(AppConstants.Title) + "\nAuthor - " +
-                adminData.getAttr(AppConstants.Author) + "\nLanguage - " + adminData.getAttr(AppConstants.Language) + "\nPages - " +
-                adminData.getAttr(AppConstants.TotalPages) + "\nPublication Year - " + adminData.getAttr(AppConstants.Year) + "\nBarcode EAN.UCC-13 \n"));
+        document.add(new Paragraph("Barcode - " + barcode + "\nTitle - " + adminData.getAttr(AppConstants.Title) + "\nSubject - " +
+                adminData.getAttr(AppConstants.Subject) + "\nAuthor - " + adminData.getAttr(AppConstants.Author) + "\nLanguage - " +
+                adminData.getAttr(AppConstants.Language) + "\nPages - " + adminData.getAttr(AppConstants.TotalPages) +
+                "\nPublication Year - " + adminData.getAttr(AppConstants.Year) + "\nCreator - Fast DLI Downloader" +
+                "\nhttps://github.com/cancerian0684/dli-downloader" + "\nBarcode EAN.UCC-13 \n"));
         BarcodeEAN codeEAN = new BarcodeEAN();
         codeEAN.setCode(barcode);
         document.add(codeEAN.createImageWithBarcode(cb, null, null));
@@ -119,7 +117,7 @@ public class TiffToPDFConverter {
         document.newPage();
     }
 
-    private boolean addTiffToDocument(Document document, Path path, Rectangle pageSize, LogWindow logWindow) {
+    private boolean addTiffToDocument(Document document, Path path, Rectangle pageSize, LogWindow logWindow, AtomicBoolean status) {
         RandomAccessSourceFactory factory = new RandomAccessSourceFactory();
         RandomAccessSource bestSource = null;
         RandomAccessFileOrArray myTiffFile = null;
@@ -134,6 +132,7 @@ public class TiffToPDFConverter {
             tiff.scaleToFit(pageSize.getWidth(), pageSize.getHeight());
             document.add(tiff);
             document.newPage();
+            status.set(true);
             return true;
         } catch (Exception e) {
             logger.info("Error converting this TIFF image to Pdf : " + path.getFileName());

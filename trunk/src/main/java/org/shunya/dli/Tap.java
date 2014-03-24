@@ -46,7 +46,7 @@ public class Tap {
         }
     }
 
-    public synchronized void offAndWaitIfDisconnected() throws CancelledExecutionException {
+    public synchronized void pauseIfDisconnected() throws CancelledExecutionException {
         try {
             offIfDisconnected();
             await();

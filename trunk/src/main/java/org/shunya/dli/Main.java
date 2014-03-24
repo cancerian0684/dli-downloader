@@ -14,7 +14,11 @@ import java.io.StringWriter;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Properties;
 
 import static java.util.Arrays.asList;
@@ -59,7 +63,7 @@ public class Main implements TapListener {
             Path path = FileSystems.getDefault().getPath(System.getProperty("user.home"));
             sw.write("\n\nSettings\n");
             sw.write(Utils.readFromFile(path.resolve(DLI_SETTINGS_XML)));
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
         }
         final ImageIcon icon = createImageIcon("/images/dli-red.png");
         String userEmail = (String) JOptionPane.showInputDialog(
@@ -84,6 +88,7 @@ public class Main implements TapListener {
     private DownloadPanel downloadPanel;
     private final BarcodeExtractor extractor = new BarcodeExtractor();
     private CachedDownloads downloadCache;
+    private FileNamer fileNamer;
     private volatile boolean cancelled = false;
     private boolean currentlyBusy = false;
     private SingleInstanceFileLock singleInstanceFileLock;
@@ -111,6 +116,7 @@ public class Main implements TapListener {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         }
         Thread.setDefaultUncaughtExceptionHandler(exceptionHandler);
+        fileNamer = new FileNamer(appContext.getRootDirectory() + ";" + appContext.getDownloadDirectories(), extractor, appContext);
         downloadCache = new CachedDownloads(appContext.getRootDirectory() + ";" + appContext.getDownloadDirectories(), extractor, appContext);
         idleImage = ImageIO.read(DownloadPanel.class.getResourceAsStream("/images/dli-blue.png"));
         busyImage = ImageIO.read(DownloadPanel.class.getResourceAsStream("/images/dli-red.png"));
@@ -141,21 +147,6 @@ public class Main implements TapListener {
         });
         popup.add(pauseAllDownloads);
 
-        final MenuItem aboutMenuItem = new MenuItem("About");
-        aboutMenuItem.setFont(new Font("Tahoma", Font.BOLD, 12));
-        aboutMenuItem.addActionListener(e -> {
-            JOptionPane.showMessageDialog(jFrame, "Developer : Munish Chandel [cancerian0684@gmail.com] \nCo-Developer : Arun Sharma [arunsharma.nith@gmail.com]\n\n" +
-                    "Donate for this work (atleast Rs.100)\n" +
-                    "Bank Details for NEFT Transfer\n" +
-                    "MUNISH CHANDEL\n" +
-                    "a/c 5277618224\n" +
-                    "IFSC : CITI0000002\n" +
-                    "Citi Bank, Branch NA. Delhi", "Developers", JOptionPane.INFORMATION_MESSAGE);
-        });
-        popup.add(aboutMenuItem);
-
-        popup.addSeparator();
-
         MenuItem resetConfigItem = new MenuItem("Reset Config");
         resetConfigItem.addActionListener((ActionListener) resetConfigListner);
         popup.add(resetConfigItem);
@@ -171,6 +162,19 @@ public class Main implements TapListener {
             }
         });
         popup.add(scanDownloadItem);
+
+        MenuItem renameLocalFiles = new MenuItem("Rename Files");
+        renameLocalFiles.addActionListener(e -> {
+            int confirm = JOptionPane.showOptionDialog(jFrame,
+                    "Are You Sure You want to rename All local downloads ? \n\nThis might takes minutes of time",
+                    "Rename all local downloads ?", JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE, null, null, null);
+            if (confirm == JOptionPane.YES_OPTION) {
+                renameLocalFiles();
+            }
+        });
+        popup.add(renameLocalFiles);
+        popup.addSeparator();
 
         MenuItem defaultItem = new MenuItem("Shutdown");
         defaultItem.addActionListener((ActionListener) exitListener);
@@ -222,7 +226,17 @@ public class Main implements TapListener {
         askUserToIndexLanguage();
         askUserToScanDirectories();
 
-        singleInstanceFileLock.unlockFile();
+        checkIndexRefreshRequired();
+    }
+
+    private void checkIndexRefreshRequired() {
+        final Date lastIndexUpdate = appContext.getLastIndexUpdate();
+        final int refreshIndexAfterDays = appContext.getRefreshIndexAfterDays();
+        if (lastIndexUpdate ==null || lastIndexUpdate.toInstant().plus(Duration.ofDays(refreshIndexAfterDays)).compareTo(Instant.now()) < 0) {
+            logger.info("Refreshing Index Catalogue for languages - " + appContext.getIndexedLanguages());
+            appContext.getIndexedLanguages().forEach(lang -> downloadPanel.indexLanguage(this, appContext, lang.toLowerCase()));
+            appContext.setIndexedLocalDirectories(true);
+        }
     }
 
     private void askUserToScanDirectories() {
@@ -259,6 +273,18 @@ public class Main implements TapListener {
     public void indexLocalDirectories() {
         appContext.getThreadExecutorService().submit(() -> {
             logger.info("Building Local Index");
+            downloadCache.buildLocalIndex();
+            appContext.setIndexedLocalDirectories(true);
+            logger.info("Local Index built successfully");
+        });
+    }
+
+    public void renameLocalFiles() {
+        appContext.getThreadExecutorService().submit(() -> {
+            logger.info("Renaming All Local Files");
+            fileNamer.renameAllFiles();
+            logger.info("Renamed All Local Files");
+            logger.info("Rebuilding Local Index now");
             downloadCache.buildLocalIndex();
             appContext.setIndexedLocalDirectories(true);
             logger.info("Local Index built successfully");
@@ -338,6 +364,7 @@ public class Main implements TapListener {
                     disposeWindow();
                 }
                 tray.remove(trayIcon);
+                singleInstanceFileLock.unlockFile();
                 System.exit(0);
             }
         }

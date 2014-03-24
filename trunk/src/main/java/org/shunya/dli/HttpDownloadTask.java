@@ -36,16 +36,6 @@ public class HttpDownloadTask implements InteractiveTask, ProgressListener {
     }
 
     @Override
-    public String getAttr(String attribute) {
-        return "";
-    }
-
-    @Override
-    public int getFailCount() {
-        return 0;
-    }
-
-    @Override
     public void cancel() {
         cancel = true;
         state = RunState.Cancelled;
@@ -70,11 +60,6 @@ public class HttpDownloadTask implements InteractiveTask, ProgressListener {
     @Override
     public Future<?> getFuture() {
         return future;
-    }
-
-    @Override
-    public int getPdfFailures() {
-        return 0;
     }
 
     @Override

@@ -47,6 +47,7 @@ public class DLIDownloader implements InteractiveTask {
     private String postUrl;
     private String summary;
     private volatile int progress = 0;
+    private String language;
 
     public DLIDownloader(String barcode, ExecutorService service, AppContext appContext, LogWindow logWindow, ServerQueue serverQueue) {
         this.barcode = barcode;
@@ -56,7 +57,7 @@ public class DLIDownloader implements InteractiveTask {
         this.cleanupChar = appContext.getCleanupChar();
         this.cleanupRegex = appContext.getCleanupRegex();
         this.futures = new ArrayList<>();
-        this.interpreter = new BarCodeInterpreter(serverQueue);
+        this.interpreter = new BarCodeInterpreter(serverQueue, appContext);
     }
 
     @Override
@@ -66,7 +67,8 @@ public class DLIDownloader implements InteractiveTask {
 
     public void fetchMetaData() throws IOException, MetadataNotFound, CancelledExecutionException {
         adminData.putAll(interpreter.collect("/cgi-bin/DBscripts/allmetainfo.cgi?barcode=", barcode, appContext, logWindow, this));
-        postUrl = adminData.get("url");
+        postUrl = adminData.get(URL);
+        language = adminData.get(Language);
         validHosts = interpreter.getValidHost(postUrl, logWindow, this);
         URI url = URI.create(validHosts.get(0) + postUrl);
         int startPage = 1;
@@ -144,7 +146,6 @@ public class DLIDownloader implements InteractiveTask {
             else
                 return 0;
         });
-
         logger.info("Servers sorted by speed : {}", downloadWorkerList);
         logWindow.log("Servers sorted by speed : " + downloadWorkerList);
         this.rootUrl = downloadWorkerList.get(0).getRootUrl();
@@ -159,7 +160,7 @@ public class DLIDownloader implements InteractiveTask {
     private void fetchMetadataWithRetry() throws CancelledExecutionException, IOException, MetadataNotFound {
         do {
             try {
-                appContext.getTap().offAndWaitIfDisconnected();
+                appContext.getTap().pauseIfDisconnected();
                 fetchMetaData();
             } catch (Exception ie) {
                 if (appContext.getTap().checkConnected()) {
@@ -273,12 +274,10 @@ public class DLIDownloader implements InteractiveTask {
         return progress;
     }
 
-    @Override
     public String getAttr(String attribute) {
         return adminData.get(attribute) == null ? "" : adminData.get(attribute);
     }
 
-    @Override
     public int getFailCount() {
         return failedDownloadBasket.size();
     }
@@ -320,13 +319,11 @@ public class DLIDownloader implements InteractiveTask {
     @Override
     public void awaitTermination() {
         try {
-            if (futures != null) {
-                for (Future tmp : futures) {
-                    tmp.get();
-                }
-                runState = RunState.Cancelled;
-                notifyObserver();
+            for (Future tmp : futures) {
+                tmp.get();
             }
+            runState = RunState.Cancelled;
+            notifyObserver();
         } catch (InterruptedException | ExecutionException e) {
             logger.warn("exception waiting for cancellation. ", e);
         }
@@ -372,8 +369,7 @@ public class DLIDownloader implements InteractiveTask {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DLIDownloader that = (DLIDownloader) o;
-        if (!barcode.equals(that.barcode)) return false;
-        return true;
+        return barcode.equals(that.barcode);
     }
 
     @Override
@@ -395,7 +391,6 @@ public class DLIDownloader implements InteractiveTask {
         return appContext.getRootDirectory();
     }
 
-    @Override
     public int getPdfFailures() {
         return pdfFailures;
     }
@@ -414,5 +409,10 @@ public class DLIDownloader implements InteractiveTask {
     public void clean() {
         logWindow.dispose();
         pdfConverter = null;
+    }
+
+    @Override
+    public String getLanguage() {
+        return language;
     }
 }

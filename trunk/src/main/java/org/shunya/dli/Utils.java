@@ -84,8 +84,7 @@ public class Utils {
             File file = new File(path.resolve(fileName).toUri());
             JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            T config = (T) unmarshaller.unmarshal(file);
-            return config;
+            return (T) unmarshaller.unmarshal(file);
         } catch (JAXBException e) {
             System.err.println("Could not load XML file : " + fileName);
             e.printStackTrace();
@@ -99,7 +98,7 @@ public class Utils {
         String query = url.substring(url.indexOf("?") + 1);
         for (String param : query.split("\n\t")) {
             String pair[] = param.split("=");
-            if (pair == null || pair.length < 2)
+            if (pair.length < 2)
                 continue;
             String key = URLDecoder.decode(pair[0].replaceAll("&", ""), "utf-8");
             String value = "";
@@ -240,7 +239,7 @@ public class Utils {
     }
 
     public static String readContent(InputStream inputStream) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             StringBuilder out = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {

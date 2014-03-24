@@ -69,7 +69,7 @@ public class NIODownloader implements Downloader {
         } catch (IOException e) {
             logger.error(consecutiveIOFailures.get() + "- IOException downloading the file : " + fileName, e);
             logWindow.log(consecutiveIOFailures.get() + "- IOException downloading the file : " + fileName + "\r\n" + Utils.getException(e));
-            appContext.getTap().offAndWaitIfDisconnected();
+            appContext.getTap().pauseIfDisconnected();
             if (consecutiveIOFailures.incrementAndGet() >= appContext.getMaxConsecutiveIOFailure()) {
                 logWindow.log("Exceeded maximum consecutive IO failures limits [" + appContext.getMaxConsecutiveIOFailure() + "], quiting download now.");
                 throw new RuntimeException("Exceeded maximum consecutive IO failures limits [" + appContext.getMaxConsecutiveIOFailure() + "], quiting download now.");
@@ -124,7 +124,8 @@ public class NIODownloader implements Downloader {
         } catch (IOException e) {
             return -1;
         } finally {
-            conn.disconnect();
+            if (conn != null)
+                conn.disconnect();
         }
     }
 }

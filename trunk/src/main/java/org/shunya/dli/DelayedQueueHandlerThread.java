@@ -24,7 +24,7 @@ public class DelayedQueueHandlerThread<T> extends Thread {
 
     @Override
     public void run() {
-        while (true) {
+        while (!appContext.isShutdown()) {
             T element;
             try {
                 element = delaySkipQueue.take();

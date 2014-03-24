@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class DownloadTableModel extends AbstractTableModel {
-    public final int[] width = {25, 300, 100, 70};
+    public final int[] width = {25, 310, 80, 70};
     private CopyOnWriteArrayList<InteractiveTask> downloadList = new CopyOnWriteArrayList<>();
     private String[] columnNames = new String[]{"<html><b>#","<html><b>e-Book Details", "<html><b>Progress", "<html><b>Status"};
     private Class[] columnClasses = new Class[]{Integer.class, String.class, JProgressBar.class, RunState.class};

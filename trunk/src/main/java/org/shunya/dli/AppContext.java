@@ -5,7 +5,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.awt.*;
 import java.nio.file.FileSystems;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.*;
+
+import static java.util.Arrays.asList;
 
 @XmlRootElement
 public class AppContext {
@@ -103,6 +108,12 @@ public class AppContext {
     private String username = System.getProperty("user.name");
     @Settings(description = "User email address for sending failure report")
     private String userEmail;
+    private Date lastIndexUpdate;
+    private Set<String> indexedLanguages = new HashSet<>(asList("Hindi", "English"));
+    @Settings(description = "Automatically refresh index after X days, default is 30 days")
+    private int refreshIndexAfterDays = 30;
+    @Settings(description = "Automatically Index new Language when a new Book is downloaded ?")
+    private boolean automaticallyIndexNewLanguages = true;
 //    private String proxyHost;
 //    private String proxyPort;
 //    private String proxyUser;
@@ -551,5 +562,37 @@ public class AppContext {
 
     public void setTotalBooksDownloaded(long totalBooksDownloaded) {
         this.totalBooksDownloaded = totalBooksDownloaded;
+    }
+
+    public Date getLastIndexUpdate() {
+        return lastIndexUpdate;
+    }
+
+    public void setLastIndexUpdate(Date lastIndexUpdate) {
+        this.lastIndexUpdate = lastIndexUpdate;
+    }
+
+    public Set<String> getIndexedLanguages() {
+        return indexedLanguages;
+    }
+
+    public void setIndexedLanguages(Set<String> indexedLanguages) {
+        this.indexedLanguages = indexedLanguages;
+    }
+
+    public int getRefreshIndexAfterDays() {
+        return refreshIndexAfterDays;
+    }
+
+    public void setRefreshIndexAfterDays(int refreshIndexAfterDays) {
+        this.refreshIndexAfterDays = refreshIndexAfterDays;
+    }
+
+    public boolean isAutomaticallyIndexNewLanguages() {
+        return automaticallyIndexNewLanguages;
+    }
+
+    public void setAutomaticallyIndexNewLanguages(boolean automaticallyIndexNewLanguages) {
+        this.automaticallyIndexNewLanguages = automaticallyIndexNewLanguages;
     }
 }

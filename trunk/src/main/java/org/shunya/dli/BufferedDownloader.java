@@ -22,7 +22,7 @@ public class BufferedDownloader implements Downloader {
     @Override
     public boolean download(String rootUrl, String fileName, String outputDir, AppContext appContext, boolean overwrite, LogWindow simpleLogger, int maxDownloadSize, boolean tapSpeed) throws CancelledExecutionException {
         Path path = Paths.get(outputDir, fileName);
-        try (BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(path, StandardOpenOption.CREATE_NEW), 1024);) {
+        try (BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream(path, StandardOpenOption.CREATE_NEW), 1024)) {
             URL url = new URL(rootUrl + fileName);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setReadTimeout(180000);

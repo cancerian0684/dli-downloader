@@ -11,11 +11,9 @@ public interface InteractiveTask {
 
     default String getSummary() {return getBarcode();}
 
+    default String getLanguage() {return "";}
+
     int getProgress();
-
-    String getAttr(String attribute);
-
-    int getFailCount();
 
     void cancel();
 
@@ -26,8 +24,6 @@ public interface InteractiveTask {
     void setState(RunState state);
 
     Future<?> getFuture();
-
-    int getPdfFailures();
 
     String getPdfName();
 
